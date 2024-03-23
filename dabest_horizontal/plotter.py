@@ -1332,8 +1332,8 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
     contrast_desat = kwargs["halfviolin_desat"]
 
     if color_col == None:
-        swarm_colors = horizontal_colormaker(number=number_of_groups if is_paired else Num_Exps,custom_pal=custom_palette,desat_level=swarm_desat)
-        contrast_colors = horizontal_colormaker(number=number_of_groups if is_paired else Num_Exps,custom_pal=custom_palette,desat_level=contrast_desat)
+        swarm_colors = horizontal_colormaker(number=number_of_groups if is_paired else MM_Adj_Num_Exps,custom_pal=custom_palette,desat_level=swarm_desat)
+        contrast_colors = horizontal_colormaker(number=number_of_groups if is_paired else MM_Adj_Num_Exps,custom_pal=custom_palette,desat_level=contrast_desat)
     else:
         if color_col not in plot_data.columns:
             raise KeyError("`{}` is not a column in the data.".format(color_col))
@@ -1407,8 +1407,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
     #
     #     plot_palette_sankey = custom_palette
     #
-    # print(plot_palette_raw)
-    # print(all_plot_groups)
 
     ## Checks
     # assert (not EffectSizeDataFrame.delta2), 'Horizontal Plot is currently unavailable for delta-delta experiments.'  ### Check if delta-delta experiment (not available)
@@ -1458,7 +1456,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
     dot_alpha = swarm_kwargs['dot_alpha']
     swarm_xlim = swarm_kwargs['xlim']
     swarm_xlabel_fontsize = swarm_kwargs['xlabel_fontsize']
-    print(swarm_colors)
 
     ### Unpaired
     if not is_paired:
@@ -1511,7 +1508,7 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
                 df_list.append(_df)
             ordered_df = pd.concat(df_list)
             sns.swarmplot(ax=rawdata_axes,data=ordered_df, x=yvar,y='ypos', orient="h",palette=swarm_colors[::-1] if color_col == None else swarm_colors,
-                        alpha=dot_alpha,size=raw_marker_size,hue=color_col,order = np.arange(MM_Adj_Num_Exps+1))
+                        alpha=dot_alpha,size=raw_marker_size-2,hue=color_col,order = np.arange(MM_Adj_Num_Exps+1))
             rawdata_axes.set_ylabel('')
 
     ### Paired
@@ -1642,7 +1639,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
         for n,y in zip(np.arange(0,MM_Adj_Num_of_contrasts,1),ypos):
             rawdata_axes.contrast_axes.add_patch(mpatches.Rectangle((0,y), mean_diff[n], 0.5 if multi_paired_control or not is_paired else 1, **barplot_kwargs))
 
-    print(contrast_colors)
     ### Violin colors
     if color_col == None:
         if multi_unpaired_control:
