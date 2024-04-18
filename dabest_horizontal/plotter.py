@@ -1174,7 +1174,7 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
     import pandas as pd
     import warnings
     from .misc_tools import merge_two_dicts
-    from .plot_tools import horizontal_colormaker,halfviolin
+    from .plot_tools import horizontal_colormaker,halfviolin, swarmplot
 
     ## Variables
     ### General Variables
@@ -1306,26 +1306,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
     single_color_contrast_dots = contrast_dots_kwargs['color']
     del contrast_dots_kwargs['color']
 
-    ## Colors
-    # if color_col is None:
-    #     color_groups = pd.unique(plot_data[xvar])
-    #     bootstraps_color_by_group = True
-    #     # swarm_colors = horizontal_colormaker(number=number_of_groups if is_paired else Num_Exps,custom_pal=custom_palette,desat_level=swarm_desat)
-    #     # halfviolin_colors = horizontal_colormaker(number=number_of_groups if is_paired else Num_Exps,custom_pal=custom_palette,desat_level=halfviolin_desat)
-    # else:
-    #     if color_col not in plot_data.columns:
-    #         raise KeyError("`{}` is not a column in the data.".format(color_col))
-    #     color_groups = pd.unique(plot_data[color_col])
-    #     bootstraps_color_by_group = False
-    # if show_pairs:
-    #     bootstraps_color_by_group = False
-    #     # color_col_nums = len(plot_data[color_col].unique())
-    #     # if color_col_nums == 0:
-    #     #     raise ValueError('Color column is empty or does not exist.')
-    #     # else:
-    #     #     swarm_colors = horizontal_colormaker(number=color_col_nums,custom_pal=custom_palette,desat_level=swarm_desat)
-    #     #     halfviolin_colors = horizontal_colormaker(number=color_col_nums,custom_pal=custom_palette,desat_level=halfviolin_desat)
-
     custom_palette = kwargs["custom_palette"]
     swarm_desat = kwargs["swarm_desat"]
     bar_desat = kwargs["bar_desat"]
@@ -1344,69 +1324,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
             else:
                 swarm_colors = horizontal_colormaker(number=color_col_nums,custom_pal=custom_palette,desat_level=swarm_desat)
                 contrast_colors = horizontal_colormaker(number=color_col_nums,custom_pal=custom_palette,desat_level=contrast_desat)
-
-    # Handling of color palette
-
-
-    # if custom_palette is None:
-    #     unsat_colors = sns.color_palette(n_colors=n_groups)
-    # else:
-    #     if isinstance(custom_palette, dict):
-    #         groups_in_palette = {k: v for k,v in custom_palette.items()
-    #                              if k in color_groups}
-    #
-    #         # # check that all the keys in custom_pal are found in the
-    #         # # color column.
-    #         # col_grps = {k for k in color_groups}
-    #         # pal_grps = {k for k in custom_pal.keys()}
-    #         # not_in_pal = pal_grps.difference(col_grps)
-    #         # if len(not_in_pal) > 0:
-    #         #     err1 = 'The custom palette keys {} '.format(not_in_pal)
-    #         #     err2 = 'are not found in `{}`. Please check.'.format(color_col)
-    #         #     errstring = (err1 + err2)
-    #         #     raise IndexError(errstring)
-    #
-    #         names = groups_in_palette.keys()
-    #         unsat_colors = groups_in_palette.values()
-    #
-    #     elif isinstance(custom_palette, list):
-    #         unsat_colors = custom_palette[0: n_groups]
-    #
-    #     elif isinstance(custom_palette, str):
-    #         # check it is in the list of matplotlib palettes.
-    #         if custom_palette in plt.colormaps():
-    #             unsat_colors = sns.color_palette(custom_palette, n_groups)
-    #         else:
-    #             err1 = 'The specified `custom_palette` {}'.format(custom_palette)
-    #             err2 = ' is not a matplotlib palette. Please check.'
-    #             raise ValueError(err1 + err2)
-    #
-    # if custom_palette is None and color_col is None:
-    #     swarm_colors = [sns.desaturate(c, swarm_desat) for c in unsat_colors]
-    #     plot_palette_raw = dict(zip(names.categories, swarm_colors))
-    #
-    #     bar_color = [sns.desaturate(c, bar_desat) for c in unsat_colors]
-    #     plot_palette_bar = dict(zip(names.categories, bar_color))
-    #
-    #     contrast_colors = [sns.desaturate(c, contrast_desat) for c in unsat_colors]
-    #     plot_palette_contrast = dict(zip(names.categories, contrast_colors))
-    #
-    #     # For Sankey Diagram plot, no need to worry about the color, each bar will have the same two colors
-    #     # default color palette will be set to "hls"
-    #     plot_palette_sankey = None
-    #
-    # else:
-    #     swarm_colors = [sns.desaturate(c, swarm_desat) for c in unsat_colors]
-    #     plot_palette_raw = dict(zip(names, swarm_colors))
-    #
-    #     bar_color = [sns.desaturate(c, bar_desat) for c in unsat_colors]
-    #     plot_palette_bar = dict(zip(names, bar_color))
-    #
-    #     contrast_colors = [sns.desaturate(c, contrast_desat) for c in unsat_colors]
-    #     plot_palette_contrast = dict(zip(names, contrast_colors))
-    #
-    #     plot_palette_sankey = custom_palette
-    #
 
     ## Checks
     # assert (not EffectSizeDataFrame.delta2), 'Horizontal Plot is currently unavailable for delta-delta experiments.'  ### Check if delta-delta experiment (not available)
@@ -1468,47 +1385,40 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
                 df_list.append(_df)
             ordered_df = pd.concat(df_list)
             sns.swarmplot(ax=rawdata_axes,data=ordered_df, x=yvar,y='ypos', orient="h",palette=swarm_colors[::-1] if color_col == None else swarm_colors,
-                        alpha=dot_alpha,size=raw_marker_size-2,hue=color_col,order = np.arange(MM_Adj_Num_Exps+1))
+                        alpha=dot_alpha,size=raw_marker_size-2,hue=color_col,order = np.arange(0, MM_Adj_Num_Exps + 1, 1))
+            if color_col == None:
+                for ele in np.arange(2,MM_Adj_Num_Exps+1):
+                    rawdata_axes.collections[ele].set_fc(swarm_colors[::-1][ele-1])
             rawdata_axes.set_ylabel('')
-
-            # plot_data.sort_values(by=[id_col], inplace=True)
-            # #### Deal with color_col
-            # if color_col != None:
-            #     color_col_ind = plot_data[color_col].unique()
-            #     color_col_dict = {}
-            #     for n, c in zip(color_col_ind, swarm_colors):
-            #         color_col_dict.update({n: c})
-            #
-            # #### Create the data tuples & Mean + SD tuples
-            # output_x, output_y = [], []
-            # color_col_names = []
-            #
-            # startpos = MM_Adj_Num_Exps
-            # for n in np.arange(0, number_of_groups, 1):
-            #     samplesize = len(plot_data[plot_data[xvar].str.contains(idx[n][0])])
-            #     y_list, x_list = [], []
-            #     for num, i in enumerate(idx[n]):
-            #         y_list.append(samplesize * [startpos - num])
-            #         x_list.append(plot_data[plot_data[xvar].str.contains(i)][yvar])
-            #
-            #     startpos = startpos - Num_of_Exps_in_each_group[n]
-            #
-            #     output_y.append(np.array(y_list))
-            #     output_x.append(np.array(x_list))
-            #     if color_col != None:
-            #         color_col_names.append(np.array(plot_data[plot_data[xvar].str.contains(idx[n][0])][color_col]))
-
 
         else:
             ordered_labels = unpacked_idx
             df_list = []
-            for i,ypos in zip(ordered_labels,np.arange(1,MM_Adj_Num_Exps+1,1)[::-1]):
+            for i,ypos in zip(ordered_labels,np.arange(1,MM_Adj_Num_Exps+1)[::-1]):
                 _df = plot_data[plot_data[xvar]==i].copy()
                 _df['ypos'] = ypos
                 df_list.append(_df)
             ordered_df = pd.concat(df_list)
             sns.swarmplot(ax=rawdata_axes,data=ordered_df, x=yvar,y='ypos', orient="h",palette=swarm_colors[::-1] if color_col == None else swarm_colors,
-                        alpha=dot_alpha,size=raw_marker_size-2,hue=color_col,order = np.arange(MM_Adj_Num_Exps+1))
+                       alpha=dot_alpha,size=raw_marker_size-2,hue=color_col,order = np.arange(0,MM_Adj_Num_Exps+1))
+            # swarmplot(
+            #     data=ordered_df,
+            #     x= yvar,
+            #     y='ypos',
+            #     ax=rawdata_axes,
+            #     order=None,
+            #     hue=color_col,
+            #     horizontal = True,
+            #     palette=swarm_colors[::-1] if color_col == None else swarm_colors,
+            #     size=raw_marker_size-2,
+            #     alpha=dot_alpha,
+            #     side="right",
+            #     is_drop_gutter=True,
+            #     gutter_limit=1,
+            # )
+            if color_col == None:
+                for ele in np.arange(1,MM_Adj_Num_Exps+1):
+                    rawdata_axes.collections[ele].set_fc(swarm_colors[::-1][ele-1])
             rawdata_axes.set_ylabel('')
 
     ### Paired
@@ -1598,7 +1508,7 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
         if multi_unpaired_control:
             ypos,contrast_locs=[],[]
             start=1
-            start_color = 0
+            start_color = 1
             for n in Num_of_Exps_in_each_group:
                 for i in range(n-1):
                     end = start + i
@@ -1651,7 +1561,7 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
                     rawdata_axes.contrast_axes.collections[start+num].set_fc(c)
                 start += (len(idx[n])-1)
         else:
-            for n,c in zip(np.arange(0,MM_Adj_Num_of_contrasts,1),contrast_colors if is_paired else contrast_colors):
+            for n,c in zip(np.arange(0,MM_Adj_Num_of_contrasts,1),contrast_colors if is_paired else contrast_colors[1:]):
                 rawdata_axes.contrast_axes.collections[n].set_fc(c)
     else:
         for n in np.arange(0,MM_Adj_Num_of_contrasts,1):
@@ -1835,13 +1745,6 @@ def EffectSizeDataFramePlotterHorizontal(EffectSizeDataFrame, **kwargs):
             line_start=line_end+1
     else:
         if multi_unpaired_control:
-            # line_start=1
-            # end=0
-            # for n in Num_of_Exps_in_each_group[::-1]:
-            #     line_end=line_start+(n-1)
-            #     rawdata_axes.vlines(spine_xpos, line_start, line_end, colors='black', linestyles='solid', label='',linewidths=1)
-            #     line_start=line_end+1
-
             line_start = 2 if mini_meta or delta2 else 1
             for n in Num_of_Exps_in_each_group[::-1]:
                 line_end = line_start + (n - 1)
